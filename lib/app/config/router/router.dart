@@ -1,24 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../presentation/modules/home/views/homeView.dart';
-import '../../presentation/myApp.dart';
-import 'paths.dart';
-import 'routes.dart';
+import '../../presentation/pages/home_page.dart';
+import '../../presentation/pages/post_detail_page.dart';
 
-mixin RouterMixin on State<MyApp> {
-  final _router = GoRouter(
-    initialLocation: Paths.root,
-    errorBuilder: (_, state) => HomeView(),
-    routes: [
-      GoRoute(
-        name: Routes.home,
-        path: Paths.home,
-        builder: (_, __) => HomeView(),
+final GoRouter appRouter = GoRouter(
+  initialLocation: '/',
+  routes: [
+    GoRoute(
+      path: '/',
+      name: 'home',
+      builder: (context, state) => const HomePage(),
+    ),
+    GoRoute(
+      path: '/post/:id',
+      name: 'postDetail',
+      builder: (context, state) {
+        final id = state.pathParameters['id'] ?? '';
+        return PostDetailPage(postId: id);
+      },
+    ),
+  ],
+  errorBuilder: (context, state) =>
+      Scaffold(
+        body: Center(
+          child: Text('Error: ${state.error}'),
+        ),
       ),
-    ],
-  );
-
-  GoRouter get router => _router;
-}
+);

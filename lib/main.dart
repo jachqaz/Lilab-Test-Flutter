@@ -1,10 +1,10 @@
-import 'package:flutter/widgets.dart';
-import 'package:url_strategy/url_strategy.dart';
+import 'package:flutter/material.dart';
 
-import 'app/config/providers/blocsProviders.dart';
+import 'app/config/injection_container.dart' as di;
+import 'app/presentation/my_app.dart';
 
-void main(List<String> args) async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  setPathUrlStrategy();
-  runApp(const BlocsProviders());
+  await di.init();
+  runApp(const MyApp());
 }

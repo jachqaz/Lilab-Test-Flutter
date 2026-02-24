@@ -1,0 +1,257 @@
+name: CI/CD Multiplataforma
+
+on:
+  push:
+    branches: [ develop, main ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          dart run pigeon --input pigeons/api.dart
+
+      - name: Run tests
+        run: flutter test --coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+
+  build_web:
+    name: Build Web
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          dart run pigeon --input pigeons/api.dart
+
+      - name: Build Web
+        run: flutter build web --release --web-renderer canvaskit
+
+      - name: Upload Web Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: build/web/
+
+  build_android:
+    name: Build Android APK
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          dart run pigeon --input pigeons/api.dart
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  build_ios:
+    name: Build iOS
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          dart run pigeon --input pigeons/api.dart
+
+      - name: Build iOS (no codesign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Create IPA
+        run: |
+          cd build/ios/iphoneos
+          mkdir Payload
+          cp -r Runner.app Payload/
+          zip -r app-release.ipa Payload
+
+      - name: Upload iOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: build/ios/iphoneos/app-release.ipa
+
+  build_windows:
+    name: Build Windows
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          dart run pigeon --input pigeons/api.dart
+
+      - name: Build Windows
+        run: flutter build windows --release
+
+      - name: Create Windows ZIP
+        run: |
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath build/windows/social_challenge_windows.zip
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: build/windows/social_challenge_windows.zip
+
+  build_macos:
+    name: Build macOS
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          dart run pigeon --input pigeons/api.dart
+
+      - name: Build macOS
+        run: flutter build macos --release
+
+      - name: Create macOS ZIP
+        run: |
+          cd build/macos/Build/Products/Release
+          zip -r social_challenge_macos.zip social_challenge.app
+          mv social_challenge_macos.zip ../../../../../
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: build/macos/Build/Products/Release/social_challenge_macos.zip
+
+  build_linux:
+    name: Build Linux
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          dart run pigeon --input pigeons/api.dart
+
+      - name: Build Linux
+        run: flutter build linux --release
+
+      - name: Create Linux TAR
+        run: |
+          cd build/linux/x64/release/bundle
+          tar -czf social_challenge_linux.tar.gz *
+          mv social_challenge_linux.tar.gz ../../../../../
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: build/linux/x64/release/bundle/social_challenge_linux.tar.gz
