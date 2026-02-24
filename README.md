@@ -1,9 +1,9 @@
 # Social Challenge - Flutter Clean Architecture
 
-[![CI/CD Multiplataforma](https://github.com/YOUR_USERNAME/social_challenge/actions/workflows/main.yml/badge.svg)](https://github.com/YOUR_USERNAME/social_challenge/actions/workflows/main.yml)
+[![CI/CD Android & iOS](https://github.com/YOUR_USERNAME/social_challenge/actions/workflows/main.yml/badge.svg)](https://github.com/YOUR_USERNAME/social_challenge/actions/workflows/main.yml)
 [![codecov](https://codecov.io/gh/YOUR_USERNAME/social_challenge/branch/main/graph/badge.svg)](https://codecov.io/gh/YOUR_USERNAME/social_challenge)
 
-Aplicación Flutter multiplataforma implementando Clean Architecture con gestión de estado híbrida (Bloc + Provider +
+Aplicación Flutter para Android e iOS implementando Clean Architecture con gestión de estado híbrida (Bloc + Provider +
 Riverpod).
 
 ## 🏗️ Arquitectura
@@ -24,18 +24,14 @@ lib/
 - ✅ Comunicación nativa con Pigeon (Android/iOS)
 - ✅ Persistencia local con SharedPreferences
 - ✅ Material Design 3
-- ✅ Responsive (Mobile, Tablet, Desktop, Web)
+- ✅ Responsive (Mobile, Tablet)
 - ✅ Tests unitarios, integración y UI
-- ✅ CI/CD para 6 plataformas
+- ✅ CI/CD para Android e iOS
 
 ## 📱 Plataformas Soportadas
 
 - Android (APK)
 - iOS (IPA)
-- Web (CanvasKit)
-- Windows (EXE)
-- macOS (APP)
-- Linux (TAR.GZ)
 
 ## 🛠️ Configuración
 
@@ -43,7 +39,7 @@ lib/
 
 - Flutter 3.24.0+
 - Dart 3.11.0+
-- FVM (opcional)
+- Android Studio / Xcode
 
 ### Instalación
 
@@ -84,26 +80,13 @@ flutter build apk --release
 
 # iOS
 flutter build ios --release
-
-# Web
-flutter build web --release
-
-# Windows
-flutter build windows --release
-
-# macOS
-flutter build macos --release
-
-# Linux
-flutter build linux --release
 ```
 
 ## 🔄 CI/CD
 
 El proyecto incluye workflows de GitHub Actions para:
 
-- **main.yml**: Build automático para todas las plataformas
-- **fvm-build.yml**: Build con FVM (gestión de versiones)
+- **main.yml**: Build automático para Android e iOS
 - **release.yml**: Release automático al crear tags
 
 ### Triggers
