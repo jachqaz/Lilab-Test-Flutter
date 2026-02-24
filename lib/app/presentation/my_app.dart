@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as provider;
 
 import '../config/providers/riverpod_providers.dart';
 import '../config/router/router.dart';
@@ -16,10 +16,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ProviderScope(
-      child: MultiProvider(
+      child: provider.MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (_) => SearchProvider()),
-          ChangeNotifierProvider(create: (_) => AnimationProvider()),
+          provider.ChangeNotifierProvider(create: (_) => SearchProvider()),
+          provider.ChangeNotifierProvider(create: (_) => AnimationProvider()),
         ],
         child: Consumer(
           builder: (context, WidgetRef ref, _) {

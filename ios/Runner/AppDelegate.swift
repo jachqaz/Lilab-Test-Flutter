@@ -8,7 +8,6 @@ import UserNotifications
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        requestNotificationPermissions()
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
 
@@ -20,17 +19,22 @@ import UserNotifications
         }
         NativeServiceSetup.setUp(binaryMessenger: flutterEngine.binaryMessenger, api: NativeServiceImpl())
     }
-
-    private func requestNotificationPermissions() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            if let error = error {
-                print("Error requesting notification permissions: \(error)")
-            }
-        }
-    }
 }
 
 class NativeServiceImpl: NSObject, NativeService {
+    func requestNotificationPermission() throws -> Bool {
+        var granted = false
+        let semaphore = DispatchSemaphore(value: 0)
+
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { success, error in
+            granted = success
+            semaphore.signal()
+        }
+
+        semaphore.wait()
+        return granted
+    }
+    
     func sendLocalNotification(payload: NotificationPayload) throws {
         let content = UNMutableNotificationContent()
         content.title = payload.titulo

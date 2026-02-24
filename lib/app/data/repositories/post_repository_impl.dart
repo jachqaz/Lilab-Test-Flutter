@@ -36,18 +36,19 @@ class PostRepositoryImpl implements PostRepository {
   Future<Post> toggleLike(int postId, bool isLiked) async {
     await _localStorage.saveLike(postId, isLiked);
 
+    final posts = await _remoteDataSource.getPosts();
+    final post = posts.firstWhere((p) => p.id == postId);
+
     if (isLiked) {
       _nativeService.sendLocalNotification(
         NotificationPayload(
           id: postId.toString(),
-          titulo: '¡Like agregado!',
-          mensaje: 'Has dado like al post #$postId',
+          titulo: 'Te ha gustado',
+          mensaje: 'Te ha gustado: ${post.title}',
         ),
       );
     }
 
-    final posts = await _remoteDataSource.getPosts();
-    final post = posts.firstWhere((p) => p.id == postId);
     return post.copyWith(isLiked: isLiked);
   }
 }
