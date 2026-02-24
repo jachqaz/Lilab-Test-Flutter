@@ -7,13 +7,30 @@ on:
     branches: [ develop ]
 
 jobs:
-  build_android:
-    name: Build Android APK
-    runs-on: ubuntu-latest
+  build:
+    name: Build ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - platform: Android
+            os: ubuntu-latest
+            build-cmd: flutter build apk --release
+            artifact-name: android-apk
+            artifact-path: build/app/outputs/flutter-apk/app-release.apk
+            setup-java: true
+          - platform: iOS
+            os: macos-latest
+            build-cmd: flutter build ios --release --no-codesign
+            artifact-name: ios-ipa
+            artifact-path: build/ios/iphoneos/app-release.ipa
+            setup-java: false
+    
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Java
+        if: matrix.setup-java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -34,48 +51,19 @@ jobs:
           dart run build_runner build --delete-conflicting-outputs
           dart run pigeon --input pigeons/api.dart
 
-      - name: Build APK
-        run: flutter build apk --release
-
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
-
-  build_ios:
-    name: Build iOS
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.0'
-          channel: 'stable'
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Generate code
-        run: |
-          dart run build_runner build --delete-conflicting-outputs
-          dart run pigeon --input pigeons/api.dart
-
-      - name: Build iOS (no codesign)
-        run: flutter build ios --release --no-codesign
+      - name: Build ${{ matrix.platform }}
+        run: ${{ matrix.build-cmd }}
 
       - name: Create IPA
+        if: matrix.platform == 'iOS'
         run: |
           cd build/ios/iphoneos
           mkdir Payload
           cp -r Runner.app Payload/
           zip -r app-release.ipa Payload
 
-      - name: Upload iOS Artifact
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ios-ipa
-          path: build/ios/iphoneos/app-release.ipa
+          name: ${{ matrix.artifact-name }}
+          path: ${{ matrix.artifact-path }}
