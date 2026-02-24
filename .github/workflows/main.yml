@@ -28,6 +28,13 @@ jobs:
           dart run build_runner build --delete-conflicting-outputs || true
           dart run pigeon --input pigeons/api.dart
 
+      - name: Verify generated files
+        run: |
+          echo "Checking generated files..."
+          find lib -name "*.g.dart" -o -name "*.freezed.dart" || true
+          find android/app/src/main/kotlin -name "*.g.kt" || true
+          find ios/Runner -name "*.g.swift" || true
+
       - name: Upload generated files
         uses: actions/upload-artifact@v4
         with:
@@ -37,6 +44,7 @@ jobs:
             lib/**/*.freezed.dart
             android/app/src/main/kotlin/**/*.g.kt
             ios/Runner/*.g.swift
+          if-no-files-found: warn
 
   build_android:
     name: Build Android APK
