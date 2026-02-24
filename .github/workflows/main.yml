@@ -7,30 +7,50 @@ on:
     branches: [ develop ]
 
 jobs:
-  build:
-    name: Build ${{ matrix.platform }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - platform: Android
-            os: ubuntu-latest
-            build-cmd: flutter build apk --release
-            artifact-name: android-apk
-            artifact-path: build/app/outputs/flutter-apk/app-release.apk
-            setup-java: true
-          - platform: iOS
-            os: macos-latest
-            build-cmd: flutter build ios --release --no-codesign
-            artifact-name: ios-ipa
-            artifact-path: build/ios/iphoneos/app-release.ipa
-            setup-java: false
-    
+  prepare:
+    name: Prepare & Generate Code
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code
+        run: |
+          dart run build_runner build --delete-conflicting-outputs || true
+          dart run pigeon --input pigeons/api.dart
+
+      - name: Upload generated files
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-code
+          path: |
+            lib/**/*.g.dart
+            lib/**/*.freezed.dart
+            android/app/src/main/kotlin/**/*.g.kt
+            ios/Runner/*.g.swift
+
+  build_android:
+    name: Build Android APK
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download generated files
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-code
+
       - name: Setup Java
-        if: matrix.setup-java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -46,22 +66,49 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Generate code
-        run: dart run pigeon --input pigeons/api.dart
+      - name: Build APK
+        run: flutter build apk --release
 
-      - name: Build ${{ matrix.platform }}
-        run: ${{ matrix.build-cmd }}
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  build_ios:
+    name: Build iOS IPA
+    needs: prepare
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download generated files
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-code
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS
+        run: flutter build ios --release --no-codesign
 
       - name: Create IPA
-        if: matrix.platform == 'iOS'
         run: |
           cd build/ios/iphoneos
           mkdir Payload
           cp -r Runner.app Payload/
           zip -r app-release.ipa Payload
 
-      - name: Upload Artifact
+      - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact-name }}
-          path: ${{ matrix.artifact-path }}
+          name: ios-ipa
+          path: build/ios/iphoneos/app-release.ipa
