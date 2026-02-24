@@ -8,9 +8,6 @@ import UserNotifications
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        NSLog("🚀 AppDelegate didFinishLaunchingWithOptions called")
-        let result = super.application(application, didFinishLaunchingWithOptions: launchOptions)
-
         GeneratedPluginRegistrant.register(with: self)
 
         UNUserNotificationCenter.current().delegate = self
@@ -18,25 +15,11 @@ import UserNotifications
             NSLog("✅ Notification permission granted: \(granted)")
         }
 
-        // Configurar Pigeon después de un pequeño delay para asegurar que el engine esté listo
-        DispatchQueue.main.async {
-            self.setupPigeon()
+        if let controller = window?.rootViewController as? FlutterViewController {
+            NativeServiceSetup.setUp(binaryMessenger: controller.binaryMessenger, api: NativeServiceImpl())
         }
 
-        return result
-    }
-
-    private func setupPigeon() {
-        guard let controller = window?.rootViewController as? FlutterViewController else {
-            NSLog("⚠️ Window not ready, retrying...")
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                self.setupPigeon()
-            }
-            return
-        }
-
-        NativeServiceSetup.setUp(binaryMessenger: controller.binaryMessenger, api: NativeServiceImpl())
-        NSLog("✅ Pigeon setup completed")
+        return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
 
     override func userNotificationCenter(
