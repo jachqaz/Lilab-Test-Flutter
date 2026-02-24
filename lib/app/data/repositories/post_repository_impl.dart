@@ -40,13 +40,19 @@ class PostRepositoryImpl implements PostRepository {
     final post = posts.firstWhere((p) => p.id == postId);
 
     if (isLiked) {
-      _nativeService.sendLocalNotification(
-        NotificationPayload(
-          id: postId.toString(),
-          titulo: 'Te ha gustado',
-          mensaje: 'Te ha gustado: ${post.title}',
-        ),
-      );
+      try {
+        print('📢 Sending notification for: ${post.title}');
+        await _nativeService.sendLocalNotification(
+          NotificationPayload(
+            id: postId.toString(),
+            titulo: 'Te ha gustado',
+            mensaje: 'Te ha gustado: ${post.title}',
+          ),
+        );
+        print('✅ Notification sent successfully');
+      } catch (e) {
+        print('❌ Error sending notification: $e');
+      }
     }
 
     return post.copyWith(isLiked: isLiked);

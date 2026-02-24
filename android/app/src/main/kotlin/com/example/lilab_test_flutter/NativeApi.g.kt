@@ -69,7 +69,6 @@ data class NotificationPayload(
         )
     }
 }
-
 private open class NativeApiPigeonCodec : StandardMessageCodec() {
     override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
         return when (type) {
