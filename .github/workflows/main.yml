@@ -42,6 +42,7 @@ jobs:
           path: |
             lib/**/*.g.dart
             lib/**/*.freezed.dart
+            lib/app/config/theme/app_theme.dart
             android/app/src/main/kotlin/**/*.g.kt
             ios/Runner/*.g.swift
           if-no-files-found: warn

@@ -47,10 +47,6 @@ class AppTheme {
         centerTitle: false,
         elevation: 0,
       ),
-      cardTheme: CardThemeData(
-        elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -106,10 +102,6 @@ class AppTheme {
       appBarTheme: const AppBarTheme(
         centerTitle: false,
         elevation: 0,
-      ),
-      cardTheme: CardThemeData(
-        elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
